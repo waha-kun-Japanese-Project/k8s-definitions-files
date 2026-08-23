@@ -1,12 +1,12 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auth-deployment
+  name: auth-service
   namespace: backend
   labels:
     app: auth
 spec:
-  replicas: 1
+  replicas: 1     
   selector:
     matchLabels:
       app: auth
@@ -17,12 +17,20 @@ spec:
     spec:
       containers:
         - name: auth
-          image: auth:1.0
+          image: mohamedelsawyy/authservice:1.0   
           ports:
             - containerPort: 8080
-
           env:
-            # SQL Server
+            - name: ASPNETCORE_ENVIRONMENT
+              value: "Production"
+            - name: ASPNETCORE_URLS
+              value: "http://+:8080"
+            - name: Jwt__Issuer
+              value: "WAHAKUN.Auth"
+            - name: Jwt__Audience
+              value: "WAHAKUN.Client"
+            - name: Jwt__Expiry
+              value: "60"
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
@@ -35,8 +43,6 @@ spec:
                   key: password
             - name: ConnectionStrings__SQLConnection
               value: "Server=sql-server.data-services.svc.cluster.local,1433;Database=AuthDb;User Id=$(DB_USER);Password=$(DB_PASSWORD);TrustServerCertificate=True;Encrypt=True;"
-
-            # Redis (now password-protected)
             - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -44,11 +50,95 @@ spec:
                   key: password
             - name: ConnectionStrings__RedisConnection
               value: "redis.data-services.svc.cluster.local:6379,password=$(REDIS_PASSWORD)"
+            - name: RABBITMQ_USER
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secret
+                  key: username
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secret
+                  key: password
+            - name: RabbitMq__Host
+              value: "rabbitmq.data-services.svc.cluster.local"
+            - name: RabbitMq__Port
+              value: "5672"
+            - name: RabbitMq__Username
+              value: "$(RABBITMQ_USER)"
+            - name: RabbitMq__Password
+              value: "$(RABBITMQ_PASSWORD)"
 
-            # JWT — separate secret, not the SQL one (per earlier fix)
             - name: Jwt__SecretKey
               valueFrom:
                 secretKeyRef:
                   name: auth-jwt-secret
                   key: signing-key
-
+          volumeMounts:
+            - name: firebase-credentials
+              mountPath: /app/FireBase
+              readOnly: true
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          readinessProbe:
+            httpGet:
+              path: /swagger
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /swagger
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 20
+      volumes:
+        - name: firebase-credentials
+          secret:
+            secretName: auth-firebase-secret
+            items:
+              - key: graduation-project-3c67f-firebase-adminsdk-fbsvc-b88880ea28.json
+                path: graduation-project-3c67f-firebase-adminsdk-fbsvc-b88880ea28.json
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+  namespace: backend
+spec:
+  selector:
+    app: auth
+  ports:
+    - port: 80
+      targetPort: 8080
+  type: ClusterIP
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: auth-hpa
+  namespace: backend
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: auth-deployment
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 120
+    scaleUp:
+      stabilizationWindowSeconds: 0

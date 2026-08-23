@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: report-deployment
+  name: report-service
   namespace: backend
   labels:
     app: report
@@ -13,16 +13,25 @@ spec:
   template:
     metadata:
       labels:
-        app: report 
+        app: report
     spec:
       containers:
         - name: report
-          image: report:1.0
+          image: mohamedelsawyy/reportservice:1.0
           ports:
-            - containerPort: 5173
-
+            - containerPort: 8080 
           env:
-            # SQL Server
+            - name: ASPNETCORE_ENVIRONMENT
+              value: "Production"
+            - name: ASPNETCORE_URLS
+              value: "http://+:8080"
+            - name: Jwt__Issuer
+              value: "WAHAKUN.Auth"
+            - name: Jwt__Audience
+              value: "WAHAKUN.Client"
+            - name: Jwt__Expiry
+              value: "60"
+
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
@@ -34,20 +43,74 @@ spec:
                   name: sql-server-secret
                   key: password
             - name: ConnectionStrings__SQLConnection
+              value: "Server=sql-server.data-services.svc.cluster.local,1433;Database=ReportDb;User Id=$(DB_USER);Password=$(DB_PASSWORD);TrustServerCertificate=True;Encrypt=True;"
+            - name: ConnectionStrings__AuthSqlConnection
               value: "Server=sql-server.data-services.svc.cluster.local,1433;Database=AuthDb;User Id=$(DB_USER);Password=$(DB_PASSWORD);TrustServerCertificate=True;Encrypt=True;"
 
-            # Redis (now password-protected)
-            - name: REDIS_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: redis-secret
-                  key: password
-            - name: ConnectionStrings__RedisConnection
-              value: "redis.data-services.svc.cluster.local:6379,password=$(REDIS_PASSWORD)"
-
-            # JWT — separate secret, not the SQL one (per earlier fix)
             - name: Jwt__SecretKey
               valueFrom:
                 secretKeyRef:
                   name: auth-jwt-secret
                   key: signing-key
+
+            - name: Services__Storage__BaseUrl
+              value: "http://media-storage-service.backend.svc.cluster.local"
+            - name: Services__AI__BaseUrl
+              value: "http://vision-ai-api-service.backend.svc.cluster.local"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          readinessProbe:
+            httpGet:
+              path: /swagger
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /swagger
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: report-service
+  namespace: backend
+spec:
+  selector:
+    app: report
+  ports:
+    - port: 80
+      targetPort: 8080
+  type: ClusterIP
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: report-hpa
+  namespace: backend
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: report-deployment
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 120
+    scaleUp:
+      stabilizationWindowSeconds: 0

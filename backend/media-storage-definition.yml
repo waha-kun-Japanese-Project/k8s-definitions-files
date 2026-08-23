@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: media-storage-deployment
+  name: media-service
   namespace: backend
   labels:
     app: media-storage
@@ -13,24 +13,88 @@ spec:
   template:
     metadata:
       labels:
-        app: media-storage 
+        app: media-storage
     spec:
       containers:
         - name: media-storage
-          image: media-storage:1.0
+          image: mohamedelsawyy/mediastorageservice:1.0
           ports:
-            - containerPort: 5230
+            - containerPort: 8080  
           env:
-            # MinIo Server
-            - name: MINIO_ENDPOINT
-              value: "minio.data-services.svc.cluster.local"
-            - name: MINIO_ACCESS_KEY
+            - name: ASPNETCORE_ENVIRONMENT
+              value: "Production"
+            - name: ASPNETCORE_URLS
+              value: "http://+:8080"
+            - name: MinioSettings__Endpoint
+              value: "minio.data-services.svc.cluster.local:9000"
+            - name: MinioSettings__BucketName
+              value: "reportimage"
+            - name: MinioSettings__UseSSL
+              value: "false"
+            - name: MinioSettings__AccessKey
               valueFrom:
                 secretKeyRef:
                   name: minio-secret
-                  key: accesskey
-            - name: MINIO_SECRET_KEY
+                  key: username
+            - name: MinioSettings__SecretKey
               valueFrom:
                 secretKeyRef:
                   name: minio-secret
-                  key: secretkey 
+                  key: password
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          readinessProbe:
+            httpGet:
+              path: /swagger
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /swagger
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: media-storage-service
+  namespace: backend
+spec:
+  selector:
+    app: media-storage
+  ports:
+    - port: 80
+      targetPort: 8080
+  type: ClusterIP
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: media-storage-hpa
+  namespace: backend
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: media-storage-deployment
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 120
+    scaleUp:
+      stabilizationWindowSeconds: 0
