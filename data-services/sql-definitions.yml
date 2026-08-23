@@ -1,0 +1,103 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: sql-server-secret
+  namespace: data-services
+type: Opaque
+stringData:
+  username: sa
+  password: Waha-kun-sql9#
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: sql-server-pv
+spec:
+  capacity:
+    storage: 50Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: /data/kubernetes/sql-server
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - waha-kun-japanese-project
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: sql-server
+  namespace: data-services
+  labels:
+    app: sql-server
+spec:
+  serviceName: sql-server
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sql-server
+  template:
+    metadata:
+      labels:
+        app: sql-server
+    spec:
+      containers:
+        - name: sql-server
+          image: mcr.microsoft.com/mssql/server:2019-latest
+
+          ports:
+            - name: sql
+              containerPort: 1433
+
+          env:
+            - name: ACCEPT_EULA
+              value: "Y"
+
+            - name: MSSQL_SA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sql-server-secret
+                  key: password
+
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "2Gi"
+
+            limits:
+              cpu: "2"
+              memory: "4Gi"
+
+          volumeMounts:
+            - name: sql-server-storage
+              mountPath: /var/opt/mssql
+
+      volumes:
+        - name: sql-server-storage
+          persistentVolumeClaim:
+            claimName: sql-server-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sql-server
+  namespace: data-services
+spec:
+  selector:
+    app: sql-server
+  ports:
+    - name: sql
+      port: 1433
+      targetPort: 1433
+  type: ClusterIP

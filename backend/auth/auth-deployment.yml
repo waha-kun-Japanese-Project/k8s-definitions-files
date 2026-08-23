@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-deployment
+  labels:
+    app: auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata: 
+      labels:
+        app: auth
+    spec: 
+      containers:
+        - name: auth
+          image: auth:1.0
+          ports:
+            - containerPort: 8080
+          env:
+            - name: RABBITMQ_HOST
+              value: "rabbitmq-pod"
+            - name: RABBITMQ_PORT
+              value: "5672"
+          env:
+            - name: SQL_SERVER_HOST
+              value: "sql-server-pod"
+            - name: SQL_SERVER_PORT
+              value: "1433"
+            - name: SQL_SERVER_USER
+              valueFrom:
+                secretKeyRef:
+                  name: sql-server-secret
+                  key: username
+            - name: SQL_SERVER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sql-server-secret
+                  key: password
