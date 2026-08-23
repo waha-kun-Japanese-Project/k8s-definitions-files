@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auth-deployment
+  name: vision-ai-deployment
   namespace: backend
   labels:
-    app: auth
+    app: vision-ai
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: auth
+      app: vision-ai
   template:
     metadata:
       labels:
-        app: auth
+        app: vision-ai
     spec:
       containers:
-        - name: auth
-          image: auth:1.0
+        - name: vision-ai
+          image: vision-ai:1.0
           ports:
             - containerPort: 8080
 

@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: media-storage-deployment
+  namespace: backend
+  labels:
+    app: media-storage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: media-storage
+  template:
+    metadata:
+      labels:
+        app: media-storage 
+    spec:
+      containers:
+        - name: media-storage
+          image: media-storage:1.0
+          ports:
+            - containerPort: 5230
+          env:
+            # MinIo Server
+            - name: MINIO_ENDPOINT
+              value: "minio.data-services.svc.cluster.local"
+            - name: MINIO_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-secret
+                  key: accesskey
+            - name: MINIO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-secret
+                  key: secretkey 

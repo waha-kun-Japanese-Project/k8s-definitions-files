@@ -1,25 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auth-deployment
+  name: report-deployment
   namespace: backend
   labels:
-    app: auth
+    app: report
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: auth
+      app: report
   template:
     metadata:
       labels:
-        app: auth
+        app: report 
     spec:
       containers:
-        - name: auth
-          image: auth:1.0
+        - name: report
+          image: report:1.0
           ports:
-            - containerPort: 8080
+            - containerPort: 5173
 
           env:
             # SQL Server
@@ -51,4 +51,3 @@ spec:
                 secretKeyRef:
                   name: auth-jwt-secret
                   key: signing-key
-

@@ -1,25 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auth-deployment
+  name: user-deployment
   namespace: backend
   labels:
-    app: auth
+    app: user
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: auth
+      app: user
   template:
     metadata:
       labels:
-        app: auth
+        app: user
     spec:
       containers:
-        - name: auth
-          image: auth:1.0
+        - name: user
+          image: user:1.0
           ports:
-            - containerPort: 8080
+            - containerPort: 5256
 
           env:
             # SQL Server
