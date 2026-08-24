@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/waha-kun-Japanese-Project/k8s-definitions-files.git
     targetRevision: main
-    path: argocd
+    path: backend
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
