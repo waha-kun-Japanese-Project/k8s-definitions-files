@@ -6,7 +6,7 @@ metadata:
   labels:
     app: auth
 spec:
-  replicas: 1     
+  replicas: 1    
   selector:
     matchLabels:
       app: auth
@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: auth
-          image: mohamedelsawyy/authservice:1.0   
+          image: mohamedelsawyy/authservice:1:0
           ports:
             - containerPort: 8080
           env:
@@ -31,6 +31,7 @@ spec:
               value: "WAHAKUN.Client"
             - name: Jwt__Expiry
               value: "60"
+
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
@@ -43,6 +44,7 @@ spec:
                   key: password
             - name: ConnectionStrings__SQLConnection
               value: "Server=sql-server.data-services.svc.cluster.local,1433;Database=AuthDb;User Id=$(DB_USER);Password=$(DB_PASSWORD);TrustServerCertificate=True;Encrypt=True;"
+
             - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:

@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: visionapi-service
+  name: vision-ai-api-deployment
   namespace: backend
   labels:
     app: vision-ai-api
@@ -17,10 +17,10 @@ spec:
     spec:
       containers:
         - name: vision-ai-api
-          image: mohamedelsawyy/visionservice:1.0
+          image: yourdockerhubuser/visionservice:latest
           command: ["uvicorn", "VisionService.API.app:app", "--host", "0.0.0.0", "--port", "8001"]
           ports:
-            - containerPort: 8080
+            - containerPort: 8001
           env:
             - name: SERVICE_NAME
               value: "vision-service"
@@ -57,24 +57,22 @@ spec:
                   name: rabbitmq-secret
                   key: password
           resources:
-            # TensorFlow + the .keras model held in memory needs more room
-            # than the .NET services get
             requests:
               cpu: "250m"
               memory: "1Gi"
             limits:
               cpu: "1"
-              memory: "2Gi"
+              memory: "3Gi"
           readinessProbe:
             httpGet:
               path: /health
-              port: 8080
+              port: 8001
             initialDelaySeconds: 15
             periodSeconds: 10
           livenessProbe:
             httpGet:
               path: /health
-              port: 8080
+              port: 8001
             initialDelaySeconds: 30
             periodSeconds: 20
 ---
@@ -88,7 +86,7 @@ spec:
     app: vision-ai-api
   ports:
     - port: 80
-      targetPort: 8080
+      targetPort: 8001
   type: ClusterIP
 ---
 apiVersion: autoscaling/v2
