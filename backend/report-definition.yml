@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: report
-          image: mohamedelsawyy/reportservice:1.0
+          image: mohamedelsawyy/reportservice:dbc472b
           ports:
             - containerPort: 8080  
           env:

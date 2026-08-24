@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: auth
-          image: mohamedelsawyy/authservice:1:0
+          image: mohamedelsawyy/authservice:dbc472b
           ports:
             - containerPort: 8080
           env:

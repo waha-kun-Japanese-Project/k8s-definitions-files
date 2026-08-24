@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: media-storage
-          image: mohamedelsawyy/mediastorageservice:1.0
+          image: mohamedelsawyy/mediastorageservice:dbc472b
           ports:
             - containerPort: 8080   
           env:
