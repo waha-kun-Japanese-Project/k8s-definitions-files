@@ -15,6 +15,10 @@ spec:
       labels:
         app: report
     spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: report
           image: mohamedelsawyy/reportservice:latest

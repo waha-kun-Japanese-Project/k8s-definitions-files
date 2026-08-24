@@ -15,6 +15,10 @@ spec:
       labels:
         app: media-storage
     spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: media-storage
           image: mohamedelsawyy/mediastorageservice:latest

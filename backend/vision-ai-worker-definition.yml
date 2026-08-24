@@ -15,6 +15,10 @@ spec:
       labels:
         app: vision-ai-worker
     spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: vision-ai-worker
           image: mohamedelsawyy/visionservice:latest
