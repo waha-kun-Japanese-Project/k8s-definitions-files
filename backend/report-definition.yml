@@ -21,7 +21,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: report
-          image: mohamedelsawyy/reportservice:latest
+          image: mohamedelsawyy/reportservice:5371a4d
           ports:
             - containerPort: 8080  
           env:
