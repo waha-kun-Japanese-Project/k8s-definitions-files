@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: user
-          image: mohamedelsawyy/userservice:latest
+          image: mohamedelsawyy/userservice:8a70fec
           ports:
             - containerPort: 8080 
           env:

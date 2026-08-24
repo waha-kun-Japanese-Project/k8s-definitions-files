@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: report
-          image: mohamedelsawyy/reportservice:latest
+          image: mohamedelsawyy/reportservice:8a70fec
           ports:
             - containerPort: 8080  
           env:
