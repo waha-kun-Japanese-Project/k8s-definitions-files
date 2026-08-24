@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: vision-ai-worker
-          image: yourdockerhubuser/visionservice:latest
+          image: mohamedelsawyy/visionservice:latest
           command: ["python", "-m", "VisionService.Worker.worker"]
           env:
             - name: MODEL_PATH
