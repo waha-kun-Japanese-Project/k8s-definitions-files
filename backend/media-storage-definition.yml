@@ -83,7 +83,7 @@ spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: media-storage-deployment
+    name: media-service
   minReplicas: 1
   maxReplicas: 5
   metrics:
