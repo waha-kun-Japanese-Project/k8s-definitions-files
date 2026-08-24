@@ -1,16 +1,19 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: wahakun-root
+  name: backend-services
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   project: default
   source:
     repoURL: https://github.com/waha-kun-Japanese-Project/k8s-definitions-files.git
     targetRevision: main
+    path: backend
   destination:
     server: https://kubernetes.default.svc
-    namespace: argocd
+    namespace: backend
   syncPolicy:
     automated:
       prune: true
