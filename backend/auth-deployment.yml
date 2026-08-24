@@ -27,7 +27,6 @@ spec:
       containers:
         - name: auth
           image: mohamedelsawyy/authservice:latest
-          imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
