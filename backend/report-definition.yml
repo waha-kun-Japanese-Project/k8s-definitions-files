@@ -19,7 +19,7 @@ spec:
         - name: report
           image: mohamedelsawyy/reportservice:1.0
           ports:
-            - containerPort: 8080 
+            - containerPort: 8080  
           env:
             - name: ASPNETCORE_ENVIRONMENT
               value: "Production"
@@ -52,7 +52,6 @@ spec:
                 secretKeyRef:
                   name: auth-jwt-secret
                   key: signing-key
-
             - name: Services__Storage__BaseUrl
               value: "http://media-storage-service.backend.svc.cluster.local"
             - name: Services__AI__BaseUrl

@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vision-ai-worker-deployment
+  namespace: backend
+  labels:
+    app: vision-ai-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vision-ai-worker
+  template:
+    metadata:
+      labels:
+        app: vision-ai-worker
+    spec:
+      containers:
+        - name: vision-ai-worker
+          image: yourdockerhubuser/visionservice:latest
+          command: ["python", "-m", "VisionService.Worker.worker"]
+          env:
+            - name: MODEL_PATH
+              value: "models/efficientnet_waha_kun.keras"
+            - name: CONFIDENCE_THRESHOLD
+              value: "50.0"
+            - name: UPLOAD_FOLDER
+              value: "uploads"
+            - name: MAX_FILE_SIZE
+              value: "10485760"
+            - name: QUALITY_CHECK_ENABLED
+              value: "true"
+            - name: ENHANCE_IMAGE_ENABLED
+              value: "true"
+            - name: RABBITMQ_HOST
+              value: "rabbitmq.data-services.svc.cluster.local"
+            - name: RABBITMQ_PORT
+              value: "5672"
+            - name: RABBITMQ_USER
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secret
+                  key: username
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secret
+                  key: password
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "1Gi"
+            limits:
+              cpu: "1"
+              memory: "2Gi"
