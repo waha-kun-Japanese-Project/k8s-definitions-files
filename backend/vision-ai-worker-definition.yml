@@ -21,7 +21,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: vision-ai-worker
-          image: mohamedelsawyy/visionservice:e5ce9f2
+          image: mohamedelsawyy/visionservice:5fce3cb
           command:
             - python
             - -m
