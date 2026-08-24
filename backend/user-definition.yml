@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: user
-          image: mohamedelsawyy/userservice:1.0
+          image: mohamedelsawyy/userservice:dbc472b
           ports:
             - containerPort: 8080 
           env:
