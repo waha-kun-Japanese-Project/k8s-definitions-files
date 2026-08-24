@@ -99,7 +99,7 @@ spec:
   ports:
     - port: 80
       targetPort: 8080
-      nopePort: 30060
+      nodePort: 30060
   type: NodePort
 
 ---
