@@ -21,7 +21,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: media-storage
-          image: mohamedelsawyy/mediastorageservice:5371a4d
+          image: mohamedelsawyy/mediastorageservice:latest
           ports:
             - containerPort: 8080   
           env:
