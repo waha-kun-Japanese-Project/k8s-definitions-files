@@ -6,10 +6,15 @@ metadata:
   labels:
     app: auth
 spec:
-  replicas: 1    
+  replicas: 1
   selector:
     matchLabels:
       app: auth
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
   template:
     metadata:
       labels:
@@ -22,21 +27,29 @@ spec:
       containers:
         - name: auth
           image: mohamedelsawyy/authservice:latest
+          imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
-              drop: ["ALL"]
+              drop:
+                - ALL
           ports:
-            - containerPort: 8080
+            - name: http
+              containerPort: 8080
+              protocol: TCP
           env:
             - name: ASPNETCORE_ENVIRONMENT
               value: "Production"
+
             - name: ASPNETCORE_URLS
               value: "http://+:8080"
+
             - name: Jwt__Issuer
               value: "WAHAKUN.Auth"
+
             - name: Jwt__Audience
               value: "WAHAKUN.Client"
+
             - name: Jwt__Expiry
               value: "60"
 
@@ -45,11 +58,13 @@ spec:
                 secretKeyRef:
                   name: sql-server-secret
                   key: username
+
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: sql-server-secret
                   key: password
+
             - name: ConnectionStrings__SQLConnection
               value: "Server=sql-server.data-services.svc.cluster.local,1433;Database=AuthDb;User Id=$(DB_USER);Password=$(DB_PASSWORD);TrustServerCertificate=True;Encrypt=True;"
 
@@ -58,24 +73,31 @@ spec:
                 secretKeyRef:
                   name: redis-secret
                   key: password
+
             - name: ConnectionStrings__RedisConnection
               value: "redis.data-services.svc.cluster.local:6379,password=$(REDIS_PASSWORD)"
+
             - name: RABBITMQ_USER
               valueFrom:
                 secretKeyRef:
                   name: rabbitmq-secret
                   key: username
+
             - name: RABBITMQ_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: rabbitmq-secret
                   key: password
+
             - name: RabbitMq__Host
               value: "rabbitmq.data-services.svc.cluster.local"
+
             - name: RabbitMq__Port
               value: "5672"
+
             - name: RabbitMq__Username
               value: "$(RABBITMQ_USER)"
+
             - name: RabbitMq__Password
               value: "$(RABBITMQ_PASSWORD)"
 
@@ -84,10 +106,12 @@ spec:
                 secretKeyRef:
                   name: auth-jwt-secret
                   key: signing-key
+
           volumeMounts:
             - name: firebase-credentials
               mountPath: /app/FireBase
               readOnly: true
+
           resources:
             requests:
               cpu: "100m"
@@ -95,18 +119,33 @@ spec:
             limits:
               cpu: "500m"
               memory: "256Mi"
+
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 60
+
           readinessProbe:
             httpGet:
-              path: /swagger
+              path: /health
               port: 8080
-            initialDelaySeconds: 10
             periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+            successThreshold: 1
+
           livenessProbe:
             httpGet:
-              path: /swagger
+              path: /health
               port: 8080
-            initialDelaySeconds: 20
             periodSeconds: 20
+            timeoutSeconds: 2
+            failureThreshold: 3
+            successThreshold: 1
+
       volumes:
         - name: firebase-credentials
           secret:
@@ -114,6 +153,7 @@ spec:
             items:
               - key: graduation-project-3c67f-firebase-adminsdk-fbsvc-b88880ea28.json
                 path: graduation-project-3c67f-firebase-adminsdk-fbsvc-b88880ea28.json
+
 ---
 apiVersion: v1
 kind: Service
@@ -124,9 +164,12 @@ spec:
   selector:
     app: auth
   ports:
-    - port: 80
+    - name: http
+      port: 80
       targetPort: 8080
+      protocol: TCP
   type: ClusterIP
+
 ---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
@@ -148,7 +191,17 @@ spec:
           type: Utilization
           averageUtilization: 70
   behavior:
-    scaleDown:
-      stabilizationWindowSeconds: 120
     scaleUp:
       stabilizationWindowSeconds: 0
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 60
+      selectPolicy: Max
+    scaleDown:
+      stabilizationWindowSeconds: 120
+      policies:
+        - type: Percent
+          value: 50
+          periodSeconds: 60
+      selectPolicy: Max
