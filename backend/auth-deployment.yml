@@ -26,7 +26,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: auth
-          image: mohamedelsawyy/authservice:latest
+          image: mohamedelsawyy/authservice:3b6cad4
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
