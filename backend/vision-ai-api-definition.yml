@@ -22,9 +22,24 @@ spec:
       containers:
         - name: vision-ai-api
           image: mohamedelsawyy/visionservice:latest
-          command: ["uvicorn", "VisionService.API.app:app", "--host", "0.0.0.0", "--port", "8001"]
+          command:
+            - uvicorn
+            - VisionService.API.app:app
+            - --host
+            - 0.0.0.0
+            - --port
+            - "8001"
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+
           ports:
-            - containerPort: 8001
+            - name: http
+              containerPort: 8001
+
           env:
             - name: SERVICE_NAME
               value: "vision-service"
@@ -60,6 +75,7 @@ spec:
                 secretKeyRef:
                   name: rabbitmq-secret
                   key: password
+
           resources:
             requests:
               cpu: "250m"
@@ -67,18 +83,30 @@ spec:
             limits:
               cpu: "1"
               memory: "3Gi"
+
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            periodSeconds: 5
+            failureThreshold: 60
+
           readinessProbe:
             httpGet:
               path: /health
               port: 8001
-            initialDelaySeconds: 15
             periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+
           livenessProbe:
             httpGet:
               path: /health
               port: 8001
-            initialDelaySeconds: 30
             periodSeconds: 20
+            timeoutSeconds: 2
+            failureThreshold: 3
+
 ---
 apiVersion: v1
 kind: Service
@@ -89,9 +117,11 @@ spec:
   selector:
     app: vision-ai-api
   ports:
-    - port: 80
+    - name: http
+      port: 80
       targetPort: 8001
   type: ClusterIP
+
 ---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler

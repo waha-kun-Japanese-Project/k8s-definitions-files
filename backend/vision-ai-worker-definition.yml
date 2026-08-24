@@ -22,7 +22,17 @@ spec:
       containers:
         - name: vision-ai-worker
           image: mohamedelsawyy/visionservice:latest
-          command: ["python", "-m", "VisionService.Worker.worker"]
+          command:
+            - python
+            - -m
+            - VisionService.Worker.worker
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+
           env:
             - name: MODEL_PATH
               value: "models/efficientnet_waha_kun.keras"
@@ -50,6 +60,7 @@ spec:
                 secretKeyRef:
                   name: rabbitmq-secret
                   key: password
+
           resources:
             requests:
               cpu: "250m"
