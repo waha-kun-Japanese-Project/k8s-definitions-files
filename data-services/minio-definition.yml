@@ -35,7 +35,7 @@ spec:
               values:
                 - waha-kun-japanese-project
 
-...
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
