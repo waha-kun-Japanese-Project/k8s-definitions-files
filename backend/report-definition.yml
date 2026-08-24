@@ -99,7 +99,8 @@ spec:
   ports:
     - port: 80
       targetPort: 8080
-  type: ClusterIP
+      nopePort: 30060
+  type: NodePort
 
 ---
 apiVersion: autoscaling/v2
