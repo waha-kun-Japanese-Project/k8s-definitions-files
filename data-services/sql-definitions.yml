@@ -9,7 +9,7 @@ metadata:
     reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
 type: Opaque
 stringData:
-  username: waha-kun
+  username: sa
   password: Waha-Kun-Sql9#
 
 ---
