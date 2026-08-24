@@ -35,22 +35,6 @@ spec:
               operator: In
               values:
                 - waha-kun-japanese-project
-
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: sql-server-pvc
-  namespace: data-services
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: local-storage
-  resources:
-    requests:
-      storage: 50Gi
-  volumeName: sql-server-pv 
-
 ---
 apiVersion: apps/v1
 kind: StatefulSet
