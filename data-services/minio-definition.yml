@@ -11,6 +11,7 @@ type: Opaque
 stringData:
   username: minioadmin
   password: Waha-kun-minio9#
+
 ---
 apiVersion: v1
 kind: PersistentVolume
@@ -62,26 +63,22 @@ spec:
             - /data
             - --console-address
             - ":9001"
-
           ports:
             - name: api
               containerPort: 9000
             - name: console
               containerPort: 9001
-
           env:
             - name: MINIO_ROOT_USER
               valueFrom:
                 secretKeyRef:
                   name: minio-secret
                   key: username
-
             - name: MINIO_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: minio-secret
                   key: password
-
           resources:
             requests:
               cpu: "500m"
@@ -89,11 +86,9 @@ spec:
             limits:
               cpu: "2"
               memory: "4Gi"
-
           volumeMounts:
             - name: minio-storage
               mountPath: /data
-
       volumes:
         - name: minio-storage
           persistentVolumeClaim:
@@ -112,7 +107,9 @@ spec:
     - name: api
       port: 9000
       targetPort: 9000
+      nodePort: 30900
     - name: console
       port: 9001
       targetPort: 9001
-  type: ClusterIP
+      nodePort: 30901
+  type: NodePort
