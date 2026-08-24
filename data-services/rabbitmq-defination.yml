@@ -3,10 +3,14 @@ kind: Secret
 metadata:
   name: rabbitmq-secret
   namespace: data-services
+  annotations:
+    reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+    reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "backend"
+    reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
 type: Opaque
 stringData:
   username: admin
-  password: Waha-kun-rabbit9#   
+  password: Waha-kun-rabbit9# 
 
 ---
 apiVersion: v1
