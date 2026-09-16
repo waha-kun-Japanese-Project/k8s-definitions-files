@@ -57,7 +57,7 @@ spec:
     spec:
       containers:
         - name: minio-server
-          image: minio/minio:latest
+          image: quay.io/minio/minio:latest
           args:
             - server
             - /data
