@@ -21,7 +21,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: vision-ai-api
-          image: mohamedelsawyy/visionservice:bb4ff7c
+          image: mohamedelsawyy/visionservice:c0b9451
           command:
             - uvicorn
             - VisionService.API.app:app
