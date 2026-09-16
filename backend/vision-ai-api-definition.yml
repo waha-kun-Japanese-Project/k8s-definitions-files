@@ -24,7 +24,7 @@ spec:
           image: mohamedelsawyy/visionservice:c0b9451
           command:
             - uvicorn
-            - VisionService.API.app:app
+            - API.app:app
             - --host
             - 0.0.0.0
             - --port
