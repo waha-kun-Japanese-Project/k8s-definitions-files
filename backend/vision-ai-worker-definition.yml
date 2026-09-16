@@ -25,7 +25,7 @@ spec:
           command:
             - python
             - -m
-            - Worker.worker.py
+            - Worker.worker
 
           securityContext:
             allowPrivilegeEscalation: false
