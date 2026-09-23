@@ -1,0 +1,174 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  namespace: backend
+  labels:
+    app: notification
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification
+  template:
+    metadata:
+      labels:
+        app: notification
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: notification
+          image: mohamedelsawyy/notificationservice:latest   # tag is bumped by the CI workflow
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: "Production"
+            - name: ASPNETCORE_URLS
+              value: "http://+:8080"
+
+            # RabbitMQ (MassTransit consumers). NOTE: Program.cs currently hardcodes localhost/guest,
+            # so these only take effect once the code reads them from configuration.
+            - name: RABBITMQ_USER
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secret
+                  key: username
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secret
+                  key: password
+            - name: RabbitMq__Host
+              value: "rabbitmq.data-services.svc.cluster.local"
+            - name: RabbitMq__Port
+              value: "5672"
+            - name: RabbitMq__Username
+              value: "$(RABBITMQ_USER)"
+            - name: RabbitMq__Password
+              value: "$(RABBITMQ_PASSWORD)"
+
+            # Twilio (SMS) - values come from the notification-secret Secret
+            - name: Twilio__AccountSid
+              valueFrom:
+                secretKeyRef:
+                  name: notification-secret
+                  key: twilio-account-sid
+            - name: Twilio__AuthToken
+              valueFrom:
+                secretKeyRef:
+                  name: notification-secret
+                  key: twilio-auth-token
+            - name: Twilio__FromNumber
+              valueFrom:
+                secretKeyRef:
+                  name: notification-secret
+                  key: twilio-from-number
+
+            # Mail (SMTP)
+            - name: MailSettings__SmtpServer
+              value: "smtp.gmail.com"
+            - name: MailSettings__Port
+              value: "587"
+            - name: MailSettings__Email
+              valueFrom:
+                secretKeyRef:
+                  name: notification-secret
+                  key: mail-email
+            - name: MailSettings__Username
+              valueFrom:
+                secretKeyRef:
+                  name: notification-secret
+                  key: mail-username
+            - name: MailSettings__Password
+              valueFrom:
+                secretKeyRef:
+                  name: notification-secret
+                  key: mail-password
+
+          # Program.cs loads "Firebase/firebase-adminsdk.json" relative to /app
+          volumeMounts:
+            - name: firebase-credentials
+              mountPath: /app/Firebase
+              readOnly: true
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            periodSeconds: 20
+
+      volumes:
+        - name: firebase-credentials
+          secret:
+            secretName: notification-firebase-secret
+            items:
+              - key: firebase-adminsdk.json
+                path: firebase-adminsdk.json
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-service
+  namespace: backend
+spec:
+  selector:
+    app: notification
+  ports:
+    - port: 80
+      targetPort: 8080
+      nodePort: 30120
+  type: NodePort
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: notification-hpa
+  namespace: backend
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: notification-service
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 120
+    scaleUp:
+      stabilizationWindowSeconds: 0
