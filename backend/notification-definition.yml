@@ -127,7 +127,7 @@ spec:
       volumes:
         - name: firebase-credentials
           secret:
-            secretName: notification-firebase-secret
+            secretName: auth-firebase-secret
             items:
               - key: firebase-adminsdk.json
                 path: firebase-adminsdk.json
