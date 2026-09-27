@@ -21,7 +21,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: community
-          image: mohamedelsawyy/communityservice:latest   # tag is bumped by the CI workflow
+          image: mohamedelsawyy/communityservice:8f13094
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

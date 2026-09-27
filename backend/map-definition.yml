@@ -21,7 +21,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: map
-          image: mohamedelsawyy/mapservice:latest   # tag is bumped by the CI workflow
+          image: mohamedelsawyy/mapservice:8f13094
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

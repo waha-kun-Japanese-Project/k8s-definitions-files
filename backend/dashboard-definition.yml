@@ -21,7 +21,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: dashboard
-          image: mohamedelsawyy/dashboardservice:latest   # tag is bumped by the CI workflow
+          image: mohamedelsawyy/dashboardservice:8f13094
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
