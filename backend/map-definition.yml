@@ -21,7 +21,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: map
-          image: mohamedelsawyy/mapservice:e1397af
+          image: mohamedelsawyy/mapservice:a9b189c
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
