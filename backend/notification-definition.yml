@@ -21,7 +21,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: notification
-          image: mohamedelsawyy/notificationservice:a9b189c
+          image: mohamedelsawyy/notificationservice:latest   # tag is bumped by the CI workflow
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -129,9 +129,8 @@ spec:
           secret:
             secretName: auth-firebase-secret
             items:
-              - key: firebase-adminsdk.json
-                path: firebase-adminsdk.json
-
+              - key: graduation-project-3c67f-firebase-adminsdk-fbsvc-b88880ea28.json
+                path: graduation-project-3c67f-firebase-adminsdk-fbsvc-b88880ea28.json
 ---
 apiVersion: v1
 kind: Service
