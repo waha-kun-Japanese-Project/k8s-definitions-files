@@ -21,7 +21,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: report
-          image: mohamedelsawyy/reportservice:a9b189c
+          image: mohamedelsawyy/reportservice:6b39c3b
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
