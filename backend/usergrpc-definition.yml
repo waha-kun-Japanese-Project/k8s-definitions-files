@@ -45,7 +45,7 @@ spec:
                   name: sql-server-secret
                   key: password
             - name: ConnectionStrings__SQLConnection
-              value: "Server=sql-server.data-services.svc.cluster.local,1433;Database=UserDb;User Id=$(DB_USER);Password=$(DB_PASSWORD);TrustServerCertificate=True;Encrypt=True;"
+              value: "Server=sql-server.data-services.svc.cluster.local,1433;Database=AuthDb;User Id=$(DB_USER);Password=$(DB_PASSWORD);TrustServerCertificate=True;Encrypt=True;"
           resources:
             requests:
               cpu: "100m"
