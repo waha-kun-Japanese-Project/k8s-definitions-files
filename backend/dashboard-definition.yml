@@ -21,7 +21,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: dashboard
-          image: mohamedelsawyy/dashboardservice:a9b189c
+          image: mohamedelsawyy/dashboardservice:46f7a50
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
