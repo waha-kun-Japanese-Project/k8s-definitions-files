@@ -1,27 +1,27 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: issue-service
+  name: user-grpc-service
   namespace: backend
   labels:
-    app: issue
+    app: user-grpc
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: issue
+      app: user-grpc
   template:
     metadata:
       labels:
-        app: issue
+        app: user-grpc
     spec:
       securityContext:
         runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
       containers:
-        - name: issue
-          image: mohamedelsawyy/issueservice:latest
+        - name: user-grpc
+          image: mohamedelsawyy/usergrpcservice:latest
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -34,17 +34,6 @@ spec:
               value: "Production"
             - name: ASPNETCORE_URLS
               value: "http://+:8080"
-            - name: Jwt__Issuer
-              value: "WAHAKUN.Auth"
-            - name: Jwt__Audience
-              value: "WAHAKUN.Client"
-            - name: Jwt__Expiry
-              value: "60"
-            - name: Jwt__SecretKey
-              valueFrom:
-                secretKeyRef:
-                  name: auth-jwt-secret
-                  key: signing-key
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
@@ -56,13 +45,7 @@ spec:
                   name: sql-server-secret
                   key: password
             - name: ConnectionStrings__SQLConnection
-              value: "Server=sql-server.data-services.svc.cluster.local,1433;Database=IssueDb;User Id=$(DB_USER);Password=$(DB_PASSWORD);TrustServerCertificate=True;Encrypt=True;"
-            - name: ConnectionStrings__AuthSqlConnection
-              value: "Server=sql-server.data-services.svc.cluster.local,1433;Database=AuthDb;User Id=$(DB_USER);Password=$(DB_PASSWORD);TrustServerCertificate=True;Encrypt=True;"
-            - name: Services__User__BaseUrl
-              value: "http://user-service.backend.svc.cluster.local"
-            - name: Grpc__UserServiceUrl
-              value: "http://user-grpc-service.backend.svc.cluster.local"
+              value: "Server=sql-server.data-services.svc.cluster.local,1433;Database=UserDb;User Id=$(DB_USER);Password=$(DB_PASSWORD);TrustServerCertificate=True;Encrypt=True;"
           resources:
             requests:
               cpu: "100m"
@@ -91,39 +74,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: issue-service
+  name: user-grpc-service
   namespace: backend
 spec:
   selector:
-    app: issue
+    app: user-grpc
   ports:
     - port: 80
       targetPort: 8080
-      nodePort: 30130
-  type: NodePort
-
----
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: issue-hpa
-  namespace: backend
-spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: issue-service
-  minReplicas: 1
-  maxReplicas: 5
-  metrics:
-    - type: Resource
-      resource:
-        name: cpu
-        target:
-          type: Utilization
-          averageUtilization: 70
-  behavior:
-    scaleDown:
-      stabilizationWindowSeconds: 120
-    scaleUp:
-      stabilizationWindowSeconds: 0
+  type: ClusterIP
