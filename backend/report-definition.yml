@@ -50,10 +50,12 @@ spec:
                 secretKeyRef:
                   name: sql-server-secret
                   key: password
-            - name: ConnectionStrings__SQLConnection
+            - name: ConnectionStrings__ReportSqlConnection
               value: "Server=sql-server.data-services.svc.cluster.local,1433;Database=ReportDb;User Id=$(DB_USER);Password=$(DB_PASSWORD);TrustServerCertificate=True;Encrypt=True;"
             - name: ConnectionStrings__AuthSqlConnection
               value: "Server=sql-server.data-services.svc.cluster.local,1433;Database=AuthDb;User Id=$(DB_USER);Password=$(DB_PASSWORD);TrustServerCertificate=True;Encrypt=True;"
+            - name: ConnectionStrings__SQLConnection
+              value: "Server=sql-server.data-services.svc.cluster.local,1433;Database=IssueDb;User Id=$(DB_USER);Password=$(DB_PASSWORD);TrustServerCertificate=True;Encrypt=True;"
             - name: Jwt__SecretKey
               valueFrom:
                 secretKeyRef:
