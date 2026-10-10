@@ -22,6 +22,7 @@ spec:
       containers:
         - name: media-storage
           image: mohamedelsawyy/mediastorageservice:555deee
+          imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
