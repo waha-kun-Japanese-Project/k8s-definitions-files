@@ -21,7 +21,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: issue
-          image: mohamedelsawyy/issueservice:8105cf0
+          image: mohamedelsawyy/issueservice:f8af08d
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
