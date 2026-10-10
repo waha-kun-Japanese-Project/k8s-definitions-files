@@ -55,18 +55,24 @@ spec:
                 secretKeyRef:
                   name: sql-server-secret
                   key: password
-            # IssueDb - owned and migrated by IssueService on startup
             - name: ConnectionStrings__SQLConnection
               value: "Server=sql-server.data-services.svc.cluster.local,1433;Database=IssueDb;User Id=$(DB_USER);Password=$(DB_PASSWORD);TrustServerCertificate=True;Encrypt=True;"
-            # Hangfire job storage (database created by sql-init-job.yml)
             - name: ConnectionStrings__HangfireConnection
               value: "Server=sql-server.data-services.svc.cluster.local,1433;Database=HangfireDb;User Id=$(DB_USER);Password=$(DB_PASSWORD);TrustServerCertificate=True;Encrypt=True;"
-            # gRPC clients (Issue.Client) - HTTP/2 cleartext port 8081
+            - name: Hangfire__DashboardUser
+              valueFrom:
+                secretKeyRef:
+                  name: hangfire-dashboard-secret
+                  key: username
+            - name: Hangfire__DashboardPassword
+              valueFrom:
+                secretKeyRef:
+                  name: hangfire-dashboard-secret
+                  key: password
             - name: Grpc__UserServiceUrl
               value: "http://user-grpc-service.backend.svc.cluster.local:8081"
             - name: Grpc__MediaStorageUrl
               value: "http://media-grpc-service.backend.svc.cluster.local:8081"
-            # RabbitMQ - consumes IssueCreatedEvent published by ReportService
             - name: RABBITMQ_USER
               valueFrom:
                 secretKeyRef:
@@ -88,10 +94,10 @@ spec:
           resources:
             requests:
               cpu: "100m"
-              memory: "128Mi"
+              memory: "256Mi"
             limits:
               cpu: "500m"
-              memory: "256Mi"
+              memory: "512Mi"
           startupProbe:
             httpGet:
               path: /health
