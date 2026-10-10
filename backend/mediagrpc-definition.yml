@@ -1,0 +1,122 @@
+# Media.Grpc - MediaStorage gRPC service (MinIO).
+# Called by: IssueService (Grpc__MediaStorageUrl) and ReportService (Services__Storage__BaseUrl).
+# The REST MediaStorageService (media-storage-definition.yml) stays as it is.
+#
+# Ports:
+#   8080 -> HTTP/1.1 (health probes, GET /)
+#   8081 -> HTTP/2 cleartext (h2c) - all gRPC traffic
+# appsettings.json sets Kestrel EndpointDefaults Protocols=Http2, which would make a plain
+# ASPNETCORE_URLS port HTTP/2-only (kubelet HTTP/1.1 probes get 400). The two explicit
+# endpoints below override that per port.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: media-grpc-service
+  namespace: backend
+  labels:
+    app: media-grpc
+spec:
+  # Single replica on purpose - see the gRPC load-balancing note in usergrpc-definition.yml.
+  replicas: 1
+  selector:
+    matchLabels:
+      app: media-grpc
+  template:
+    metadata:
+      labels:
+        app: media-grpc
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: media-grpc
+          image: mohamedelsawyy/mediagrpcservice:latest
+          imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: grpc
+              containerPort: 8081
+              protocol: TCP
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: "Production"
+
+            - name: Kestrel__Endpoints__Rest__Url
+              value: "http://+:8080"
+            - name: Kestrel__Endpoints__Rest__Protocols
+              value: "Http1"
+            - name: Kestrel__Endpoints__Grpc__Url
+              value: "http://+:8081"
+            - name: Kestrel__Endpoints__Grpc__Protocols
+              value: "Http2"
+
+            - name: MinioSettings__Endpoint
+              value: "minio.data-services.svc.cluster.local:9000"
+            - name: MinioSettings__BucketName
+              value: "reportimage"
+            - name: MinioSettings__UseSSL
+              value: "false"
+            - name: MinioSettings__AccessKey
+              valueFrom:
+                secretKeyRef:
+                  name: minio-secret
+                  key: username
+            - name: MinioSettings__SecretKey
+              valueFrom:
+                secretKeyRef:
+                  name: minio-secret
+                  key: password
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          # Program.cs maps GET "/" (plain text) - used as the probe endpoint on the HTTP/1.1 port.
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 20
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: media-grpc-service
+  namespace: backend
+spec:
+  selector:
+    app: media-grpc
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+    - name: grpc
+      port: 8081
+      targetPort: grpc
+      protocol: TCP
+      appProtocol: kubernetes.io/h2c
+  type: ClusterIP

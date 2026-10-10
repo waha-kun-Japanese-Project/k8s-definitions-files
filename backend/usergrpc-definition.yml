@@ -1,3 +1,12 @@
+# UserGrpcService - serves UserGRPcService + ExpertService over gRPC (AuthDb).
+# Called by: IssueService (Grpc__UserServiceUrl).
+#
+# Ports:
+#   8080 -> HTTP/1.1 (health probes, GET /)
+#   8081 -> HTTP/2 cleartext (h2c) - all gRPC traffic
+# appsettings.json defines Kestrel endpoints "Rest" (Http1) and "Grpc" (Http2) bound to
+# localhost:5158/5159. Kestrel endpoints override ASPNETCORE_URLS, so the env vars below
+# re-bind those same endpoints to all interfaces; their protocols come from appsettings.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -6,6 +15,8 @@ metadata:
   labels:
     app: user-grpc
 spec:
+  # gRPC keeps one long-lived HTTP/2 connection per client, so a ClusterIP Service does not
+  # spread calls across replicas. Keep a single replica (no HPA) unless client-side LB is added.
   replicas: 1
   selector:
     matchLabels:
@@ -22,18 +33,28 @@ spec:
       containers:
         - name: user-grpc
           image: mohamedelsawyy/usergrpcservice:latest
+          imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
               drop:
                 - ALL
           ports:
-            - containerPort: 8080
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: grpc
+              containerPort: 8081
+              protocol: TCP
           env:
             - name: ASPNETCORE_ENVIRONMENT
               value: "Production"
-            - name: ASPNETCORE_URLS
+
+            - name: Kestrel__Endpoints__Rest__Url
               value: "http://+:8080"
+            - name: Kestrel__Endpoints__Grpc__Url
+              value: "http://+:8081"
+
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
@@ -53,21 +74,22 @@ spec:
             limits:
               cpu: "500m"
               memory: "256Mi"
+          # Program.cs maps GET "/" (plain text) - used as the probe endpoint on the HTTP/1.1 port.
           startupProbe:
             httpGet:
-              path: /health
-              port: 8080
+              path: /
+              port: http
             periodSeconds: 5
             failureThreshold: 60
           readinessProbe:
             httpGet:
-              path: /health
-              port: 8080
+              path: /
+              port: http
             periodSeconds: 10
           livenessProbe:
             httpGet:
-              path: /health
-              port: 8080
+              path: /
+              port: http
             periodSeconds: 20
 
 ---
@@ -80,6 +102,13 @@ spec:
   selector:
     app: user-grpc
   ports:
-    - port: 80
-      targetPort: 8080
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+    - name: grpc
+      port: 8081
+      targetPort: grpc
+      protocol: TCP
+      appProtocol: kubernetes.io/h2c
   type: ClusterIP
