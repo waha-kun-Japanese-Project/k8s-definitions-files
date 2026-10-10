@@ -35,8 +35,7 @@ spec:
             - name: ASPNETCORE_URLS
               value: "http://+:8080"
 
-            # RabbitMQ (MassTransit consumers). NOTE: Program.cs currently hardcodes localhost/guest,
-            # so these only take effect once the code reads them from configuration.
+            # RabbitMQ (MassTransit consumers) - Program.cs reads RabbitMq:Host/Username/Password
             - name: RABBITMQ_USER
               valueFrom:
                 secretKeyRef:
@@ -94,7 +93,7 @@ spec:
                   name: notification-secret
                   key: mail-password
 
-          # Program.cs loads "Firebase/firebase-adminsdk.json" relative to /app
+          # Program.cs loads /app/FireBase/graduation-project-3c67f-firebase-adminsdk-fbsvc-b88880ea28.json
           volumeMounts:
             - name: firebase-credentials
               mountPath: /app/FireBase

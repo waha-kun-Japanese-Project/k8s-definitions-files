@@ -21,7 +21,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: report
-          image: mohamedelsawyy/reportservice:dc73d4d
+          image: mohamedelsawyy/reportservice:1595f40
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -50,19 +50,41 @@ spec:
                 secretKeyRef:
                   name: sql-server-secret
                   key: password
-            - name: ConnectionStrings__HangfireConnection
-              value: "Server=sql-server.data-services.svc.cluster.local,1433;Database=HangfireDb;User Id=$(DB_USER);Password=$(DB_PASSWORD);TrustServerCertificate=True;Encrypt=True;"
+            # IssueDb - ReportService writes issues here (ReportDb no longer exists)
             - name: ConnectionStrings__SQLConnection
               value: "Server=sql-server.data-services.svc.cluster.local,1433;Database=IssueDb;User Id=$(DB_USER);Password=$(DB_PASSWORD);TrustServerCertificate=True;Encrypt=True;"
+            # Hangfire job storage (database created by sql-init-job.yml)
+            - name: ConnectionStrings__HangfireConnection
+              value: "Server=sql-server.data-services.svc.cluster.local,1433;Database=HangfireReportDb;User Id=$(DB_USER);Password=$(DB_PASSWORD);TrustServerCertificate=True;Encrypt=True;"
             - name: Jwt__SecretKey
               valueFrom:
                 secretKeyRef:
                   name: auth-jwt-secret
                   key: signing-key
+            # gRPC client to Media.Grpc (MediaStorage.MediaStorageClient) - HTTP/2 cleartext port 8081
             - name: Services__Storage__BaseUrl
-              value: "http://media-storage-service.backend.svc.cluster.local"
+              value: "http://media-grpc-service.backend.svc.cluster.local:8081"
             - name: Services__AI__BaseUrl
               value: "http://vision-ai-api-service.backend.svc.cluster.local"
+            # RabbitMQ - publishes IssueCreatedEvent to IssueService
+            - name: RABBITMQ_USER
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secret
+                  key: username
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secret
+                  key: password
+            - name: RabbitMq__Host
+              value: "rabbitmq.data-services.svc.cluster.local"
+            - name: RabbitMq__Port
+              value: "5672"
+            - name: RabbitMq__Username
+              value: "$(RABBITMQ_USER)"
+            - name: RabbitMq__Password
+              value: "$(RABBITMQ_PASSWORD)"
           resources:
             requests:
               cpu: "100m"

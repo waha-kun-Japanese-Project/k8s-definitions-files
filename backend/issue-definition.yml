@@ -55,14 +55,36 @@ spec:
                 secretKeyRef:
                   name: sql-server-secret
                   key: password
+            # IssueDb - owned and migrated by IssueService on startup
             - name: ConnectionStrings__SQLConnection
               value: "Server=sql-server.data-services.svc.cluster.local,1433;Database=IssueDb;User Id=$(DB_USER);Password=$(DB_PASSWORD);TrustServerCertificate=True;Encrypt=True;"
-            - name: ConnectionStrings__AuthSqlConnection
-              value: "Server=sql-server.data-services.svc.cluster.local,1433;Database=AuthDb;User Id=$(DB_USER);Password=$(DB_PASSWORD);TrustServerCertificate=True;Encrypt=True;"
-            - name: Services__User__BaseUrl
-              value: "http://user-service.backend.svc.cluster.local"
+            # Hangfire job storage (database created by sql-init-job.yml)
+            - name: ConnectionStrings__HangfireConnection
+              value: "Server=sql-server.data-services.svc.cluster.local,1433;Database=HangfireIssueDb;User Id=$(DB_USER);Password=$(DB_PASSWORD);TrustServerCertificate=True;Encrypt=True;"
+            # gRPC clients (Issue.Client) - HTTP/2 cleartext port 8081
             - name: Grpc__UserServiceUrl
-              value: "http://user-grpc-service.backend.svc.cluster.local"
+              value: "http://user-grpc-service.backend.svc.cluster.local:8081"
+            - name: Grpc__MediaStorageUrl
+              value: "http://media-grpc-service.backend.svc.cluster.local:8081"
+            # RabbitMQ - consumes IssueCreatedEvent published by ReportService
+            - name: RABBITMQ_USER
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secret
+                  key: username
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secret
+                  key: password
+            - name: RabbitMq__Host
+              value: "rabbitmq.data-services.svc.cluster.local"
+            - name: RabbitMq__Port
+              value: "5672"
+            - name: RabbitMq__Username
+              value: "$(RABBITMQ_USER)"
+            - name: RabbitMq__Password
+              value: "$(RABBITMQ_PASSWORD)"
           resources:
             requests:
               cpu: "100m"
