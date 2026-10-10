@@ -60,7 +60,7 @@ spec:
               value: "Server=sql-server.data-services.svc.cluster.local,1433;Database=IssueDb;User Id=$(DB_USER);Password=$(DB_PASSWORD);TrustServerCertificate=True;Encrypt=True;"
             # Hangfire job storage (database created by sql-init-job.yml)
             - name: ConnectionStrings__HangfireConnection
-              value: "Server=sql-server.data-services.svc.cluster.local,1433;Database=HangfireIssueDb;User Id=$(DB_USER);Password=$(DB_PASSWORD);TrustServerCertificate=True;Encrypt=True;"
+              value: "Server=sql-server.data-services.svc.cluster.local,1433;Database=HangfireDb;User Id=$(DB_USER);Password=$(DB_PASSWORD);TrustServerCertificate=True;Encrypt=True;"
             # gRPC clients (Issue.Client) - HTTP/2 cleartext port 8081
             - name: Grpc__UserServiceUrl
               value: "http://user-grpc-service.backend.svc.cluster.local:8081"
