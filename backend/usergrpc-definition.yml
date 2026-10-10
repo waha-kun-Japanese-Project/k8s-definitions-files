@@ -21,7 +21,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: user-grpc
-          image: mohamedelsawyy/usergrpcservice:f204600
+          image: mohamedelsawyy/usergrpcservice:8105cf0
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
