@@ -21,8 +21,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: media-storage
-          image: mohamedelsawyy/mediastorageservice:555deee
-          imagePullPolicy: IfNotPresent
+          image: mohamedelsawyy/mediastorageservice:f204600
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
