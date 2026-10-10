@@ -32,7 +32,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: media-grpc
-          image: mohamedelsawyy/mediagrpcservice:555deee
+          image: mohamedelsawyy/mediagrpcservice:124609f
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
