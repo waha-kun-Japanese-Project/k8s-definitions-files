@@ -21,7 +21,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: notification
-          image: mohamedelsawyy/notificationservice:3451234
+          image: mohamedelsawyy/notificationservice:4fa0cd1
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
