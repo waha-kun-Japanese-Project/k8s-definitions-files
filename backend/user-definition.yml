@@ -21,7 +21,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: user
-          image: mohamedelsawyy/userservice:807994c
+          image: mohamedelsawyy/userservice:b8c4ae0
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

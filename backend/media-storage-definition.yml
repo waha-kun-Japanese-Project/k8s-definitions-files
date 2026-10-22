@@ -21,7 +21,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: media-storage
-          image: mohamedelsawyy/mediastorageservice:807994c
+          image: mohamedelsawyy/mediastorageservice:b8c4ae0
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
