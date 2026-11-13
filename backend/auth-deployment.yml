@@ -151,8 +151,8 @@ spec:
           secret:
             secretName: auth-firebase-secret
             items:
-              - key: firebase-admin.json
-                path: firebase-admin.json
+              - key: waha-kan-firebase-adminsdk-fbsvc-2b7ce8a678.json
+                path: waha-kan-firebase-adminsdk-fbsvc-2b7ce8a678.json
 
 ---
 apiVersion: v1
