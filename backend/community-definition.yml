@@ -21,7 +21,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: community
-          image: mohamedelsawyy/communityservice:ad6137c
+          image: mohamedelsawyy/communityservice:75450f9
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
